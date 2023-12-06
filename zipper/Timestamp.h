@@ -3,7 +3,7 @@
 #include "defs.h"
 #include <ctime>
 #include <chrono>
-#if defined(USE_WINDOWS)
+#if defined(WIN32)
 #    include <Windows.h>
 #elif __linux__
 #    include <sys/stat.h>
@@ -34,7 +34,7 @@ Timestamp::Timestamp(const std::string& filepath)
     //Set default
     std::time_t now = std::time(nullptr);
     timestamp = *std::localtime(&now);
-#if defined(USE_WINDOWS)
+#if defined(WIN32)
     //Implementation based on Ian Boyd's https://stackoverflow.com/questions/20370920/convert-current-time-from-windows-to-unix-timestamp-in-c-or-c
     HANDLE hFile1;
     FILETIME filetime;

@@ -16,5 +16,7 @@ std::string currentPath();
 bool isDirectory(const std::string& path);
 std::vector<std::string> filesFromDirectory(const std::string& path);
 std::string fileNameFromPath(const std::string& path);
+bool replaceString(std::string& inOutStr, const std::string& srcSubStr, const std::string& targetSubStr);
+std::string normalPath(const std::string& path);
 
 } // namespace zipper

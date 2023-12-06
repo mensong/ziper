@@ -147,4 +147,36 @@ std::string fileNameFromPath(const std::string& fullPath)
     return CDirEntry::fileName(fullPath);
 }
 
+bool replaceString(std::string& inOutStr, const std::string& srcSubStr, const std::string& targetSubStr)
+{
+    bool reRes = false;
+    for (std::string::size_type pos(0); pos != std::string::npos; pos += targetSubStr.length())
+    {
+        pos = inOutStr.find(srcSubStr, pos);
+        if (pos != std::string::npos)
+        {
+            inOutStr.replace(pos, srcSubStr.length(), targetSubStr);
+            reRes = true;
+        }
+        else
+            break;
+    }
+    return reRes;
+}
+
+// -----------------------------------------------------------------------------
+std::string normalPath(const std::string& path)
+{
+    std::string newPath = path;
+    replaceString(newPath,
+                  (CDirEntry::Separator == "/" ? "\\" : "/"),
+                  (CDirEntry::Separator == "/" ? "/" : "\\"));
+    std::string doubleSeparators = CDirEntry::Separator + CDirEntry::Separator;
+    while (replaceString(newPath, doubleSeparators, CDirEntry::Separator))
+    {
+        /*empty*/
+    }
+    return newPath;
+}
+
 } // namespace zipper

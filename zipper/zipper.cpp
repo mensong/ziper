@@ -141,7 +141,10 @@ struct Zipper::Impl
         std::vector<char> buff;
         buff.resize(size_buf);
 
-        if (nameInZip.empty())
+        //
+        std::string normaledNameInZip = normalPath(nameInZip);
+
+        if (normaledNameInZip.empty())
             return false;
 
         flags = flags & ~int(Zipper::zipFlags::SaveHierarchy);
@@ -156,7 +159,7 @@ struct Zipper::Impl
         if (password.empty())
         {
             err = zipOpenNewFileInZip64(m_zf,
-                                        nameInZip.c_str(),
+                                        normaledNameInZip.c_str(),
                                         &zi,
                                         NULL,
                                         0,
@@ -171,7 +174,7 @@ struct Zipper::Impl
         {
             getFileCrc(input_stream, buff, crcFile);
             err = zipOpenNewFileInZip3_64(m_zf,
-                                          nameInZip.c_str(),
+                                          normaledNameInZip.c_str(),
                                           &zi,
                                           NULL,
                                           0,
@@ -369,16 +372,18 @@ bool Zipper::add(const std::string& sourceFile, const std::string& nameInZip, Zi
     return addRes;
 }
 
-bool Zipper::add(const std::string& fileOrFolderPath, Zipper::zipFlags flags)
+bool Zipper::addFolder(const std::string& folderPath, const std::string& folderInZip/* = std::string()*/, Zipper::zipFlags flags)
 {
-    if (isDirectory(fileOrFolderPath))
+    if (isDirectory(folderPath))
     {
         // std::string folderName = fileNameFromPath(fileOrFolderPath);
-        std::vector<std::string> files = filesFromDirectory(fileOrFolderPath);
+        std::vector<std::string> files = filesFromDirectory(folderPath);
         for (int i = 0; i < files.size(); ++i)
         {
             const std::string& fileName = files[i];
-            std::string fileNameInZip = fileName.substr(fileOrFolderPath.size() + 1);
+            std::string fileNameInZip = fileName.substr(folderPath.size() + 1);
+            if (!folderInZip.empty())
+                fileNameInZip = folderInZip + CDirEntry::Separator + fileNameInZip;
 
             std::ifstream input(fileName.c_str(), std::ios::binary);            
             try
@@ -395,6 +400,9 @@ bool Zipper::add(const std::string& fileOrFolderPath, Zipper::zipFlags flags)
     }
     else
     {
+        return false;
+
+        /*
         Timestamp time(fileOrFolderPath);
         std::ifstream input(fileOrFolderPath.c_str(), std::ios::binary);
         std::string fullFileName;
@@ -418,6 +426,7 @@ bool Zipper::add(const std::string& fileOrFolderPath, Zipper::zipFlags flags)
             input.close();
             throw EXCEPTION_CLASS(ex);
         }
+        */
     }
 
     return true;

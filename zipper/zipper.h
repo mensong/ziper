@@ -133,7 +133,7 @@ public:
     //! \return true on success, else return false.
     //! \throw std::runtime_error if something odd happened.
     // -------------------------------------------------------------------------
-    bool add(const std::string& fileOrFolderPath,
+    bool addFolder(const std::string& folderPath, const std::string& folderInZip = std::string(),
              Zipper::zipFlags flags = Zipper::zipFlags::Better);
 
     // -------------------------------------------------------------------------

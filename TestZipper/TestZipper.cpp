@@ -8,8 +8,8 @@
 int main()
 {
 	zipper::Zipper z("mensong.zip", "123456");
-	z.add(".\\");
-	z.add("D:\\ActiveTcl.rar", "custom\\ActiveTcl.rar");
+	z.addFolder("tmp//", "tmp\\/");
+	z.add("..\\//zipper.sln", "custom\\zipper.sln");
 	z.close();
 
 	zipper::Unzipper uz("mensong.zip", "123456");
