@@ -324,28 +324,55 @@ bool Zipper::add(std::istream& source, const std::tm& timestamp, const std::stri
     return m_impl->add(source, timestamp, nameInZip, m_password, flags);
 }
 
+bool Zipper::add(const std::string& sourceFile, const std::tm& timestamp, 
+    const std::string& nameInZip, Zipper::zipFlags flags /*= Zipper::zipFlags::Better*/)
+{
+    std::ifstream input(sourceFile.c_str(), std::ios::binary);
+
+    bool addRes = false;
+    try
+    {
+        addRes = add(input, timestamp, nameInZip, flags);
+        input.close();
+    }
+    catch (std::exception& ex)
+    {
+        input.close();
+        throw EXCEPTION_CLASS(ex);
+    }
+    
+    return addRes;
+}
+
 bool Zipper::add(std::istream& source, const std::string& nameInZip, zipFlags flags)
 {
     Timestamp time;
     return m_impl->add(source, time.timestamp, nameInZip, m_password, flags);
 }
 
+bool Zipper::add(const std::string& sourceFile, const std::string& nameInZip, Zipper::zipFlags flags /*= Zipper::zipFlags::Better*/)
+{
+    std::ifstream input(sourceFile.c_str(), std::ios::binary);
+
+    bool addRes = false;
+    try
+    {
+        addRes = add(input, nameInZip, flags);
+        input.close();
+    } 
+    catch (std::exception& ex)
+    {
+        input.close();
+        throw EXCEPTION_CLASS(ex);
+    }
+
+    return addRes;
+}
+
 bool Zipper::add(const std::string& fileOrFolderPath, Zipper::zipFlags flags)
 {
     if (isDirectory(fileOrFolderPath))
     {
-        /*
-        std::string folderName = fileNameFromPath(fileOrFolderPath);
-        std::vector<std::string> files = filesFromDirectory(fileOrFolderPath);
-        std::vector<std::string>::iterator it = files.begin();
-        for (; it != files.end(); ++it)
-        {
-            Timestamp time(*it);
-            std::ifstream input(it->c_str(), std::ios::binary);
-            std::string nameInZip = it->substr(it->rfind(folderName + CDirEntry::Separator), it->size());
-            add(input, time.timestamp, nameInZip, flags);
-            input.close();
-        }*/
         // std::string folderName = fileNameFromPath(fileOrFolderPath);
         std::vector<std::string> files = filesFromDirectory(fileOrFolderPath);
         for (int i = 0; i < files.size(); ++i)
@@ -353,12 +380,17 @@ bool Zipper::add(const std::string& fileOrFolderPath, Zipper::zipFlags flags)
             const std::string& fileName = files[i];
             std::string fileNameInZip = fileName.substr(fileOrFolderPath.size() + 1);
 
-            std::ifstream input(fileName.c_str(), std::ios::binary);
-            // std::string nameInZip = folderInZip.c_str();// it->substr(it->rfind(folderName + CDirEntry::Separator), it->size());
-            // nameInZip += CDirEntry::Separator.c_str();
-            // nameInZip += CDirEntry::fileName(*it).c_str();
-            add(input, fileNameInZip, flags);
-            input.close();
+            std::ifstream input(fileName.c_str(), std::ios::binary);            
+            try
+            {
+                add(input, fileNameInZip, flags);
+                input.close();
+            } 
+            catch (std::exception& ex)
+            {
+                input.close();
+                throw EXCEPTION_CLASS(ex);
+            }
         }
     }
     else
@@ -376,14 +408,20 @@ bool Zipper::add(const std::string& fileOrFolderPath, Zipper::zipFlags flags)
             fullFileName = fileNameFromPath(fileOrFolderPath);
         }
 
-        add(input, time.timestamp, fullFileName, flags);
-
-        input.close();
+        try
+        {
+            add(input, time.timestamp, fullFileName, flags);
+            input.close();
+        } 
+        catch (std::exception& ex)
+        {
+            input.close();
+            throw EXCEPTION_CLASS(ex);
+        }
     }
 
     return true;
 }
-
 
 void Zipper::open(Zipper::openFlags flags)
 {

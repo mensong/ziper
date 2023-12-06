@@ -107,6 +107,8 @@ public:
     // -------------------------------------------------------------------------
     bool add(std::istream& source, const std::tm& timestamp, const std::string& nameInZip,
              Zipper::zipFlags flags = Zipper::zipFlags::Better);
+    bool add(const std::string& sourceFile, const std::tm& timestamp, const std::string& nameInZip,
+             Zipper::zipFlags flags = Zipper::zipFlags::Better);
 
     // -------------------------------------------------------------------------
     //! \brief Compress data \c source in the archive with the given name \c
@@ -119,6 +121,8 @@ public:
     //! \throw std::runtime_error if something odd happened.
     // -------------------------------------------------------------------------
     bool add(std::istream& source, const std::string& nameInZip,
+             Zipper::zipFlags flags = Zipper::zipFlags::Better);
+    bool add(const std::string& sourceFile, const std::string& nameInZip,
              Zipper::zipFlags flags = Zipper::zipFlags::Better);
 
     // -------------------------------------------------------------------------
