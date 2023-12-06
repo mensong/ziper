@@ -257,10 +257,17 @@ public:
 
         if (output_file.good())
         {
-            if (UNZ_OK == extractToStream(output_file, info))
-                err = UNZ_OK;
-
-            output_file.close();
+            try
+            {
+                if (UNZ_OK == extractToStream(output_file, info))
+                    err = UNZ_OK;
+                output_file.close();
+            }
+            catch (std::exception& ex)
+            {
+                output_file.close();
+                throw EXCEPTION_CLASS(ex);
+            }
 
             /* Set the time of the file that has been unzipped */
             tm_unz timeaux;
