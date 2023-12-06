@@ -1,0 +1,8 @@
+/minizip/.vs
+/Win32
+/x64
+/zipper/.vs
+/.vs
+/minizip/*.user
+/zipper/tmp
+/zipper/*.user
