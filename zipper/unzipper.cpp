@@ -200,7 +200,7 @@ public:
         return UNZ_OK == err;
     }
 
-#if defined(USE_WINDOWS)
+#if defined(WIN32)
     void changeFileDate(const std::string& filename, uLong dosdate, tm_unz /*tmu_date*/)
     {
         HANDLE hFile;

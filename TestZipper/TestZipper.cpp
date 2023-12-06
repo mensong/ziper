@@ -7,12 +7,12 @@
 
 int main()
 {
-	zipper::Zipper z("E:\\1.zip", "123456");
+	zipper::Zipper z("mensong.zip", "123456");
 	z.add(".\\");
 	z.close();
 
-	zipper::Unzipper uz("E:\\1.zip", "123456");
-	uz.extract("E:\\mensong\\");
+	zipper::Unzipper uz("mensong.zip", "123456");
+	uz.extract("mensong\\");
 	uz.close();
 
 	return 0;

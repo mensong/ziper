@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <iostream>
 
-#if defined(USE_WINDOWS)
+#if defined(WIN32)
 #    include "tps/dirent.h"
 #    include "tps/dirent.c"
 #else
