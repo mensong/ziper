@@ -11,11 +11,11 @@
  * Copyright 2002-2005, Matthew Wilson and Synesis Software
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  * - Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer. 
+ *   list of conditions and the following disclaimer.
  * - Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
@@ -86,7 +86,7 @@
 struct dirent_dir
 {
     char            directory[_MAX_DIR + 1];    /* . */
-    WIN32_FIND_DATAA find_data;                  /* The Win32 FindFile data. */
+    WIN32_FIND_DATA find_data;                  /* The Win32 FindFile data. */
     HANDLE          hFind;                      /* The Win32 FindFile handle. */
     struct dirent   dirent;                     /* The handle's entry. */
 };
@@ -95,7 +95,7 @@ struct dirent_dir
  * Helper functions
  */
 
-static HANDLE findfile_directory(char const *name, LPWIN32_FIND_DATAA data)
+static HANDLE findfile_directory(char const *name, LPWIN32_FIND_DATA data)
 {
     char    search_spec[_MAX_PATH +1];
 
