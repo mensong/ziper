@@ -7,10 +7,19 @@
 
 int main()
 {
-	zipper::Zipper z("mensong.zip", "123456");
-	z.addFolder("tmp//", "tmp\\/");
-	z.add("..\\//zipper.sln", "custom\\zipper.sln");
-	z.close();
+	{
+		zipper::Zipper z("mensong.zip", "123456", zipper::Zipper::Overwrite);
+		z.addFolder("tmp//", "tmp1\\/");
+		z.add("..\\//zipper.sln", "sln1\\zipper.sln");
+		z.close();
+	}
+
+	{
+		zipper::Zipper z("mensong.zip", "123456", zipper::Zipper::Append);
+		z.addFolder("tmp//", "tmp2\\/");
+		z.add("..\\//zipper.sln", "sln2\\zipper.sln");
+		z.close();
+	}
 
 	zipper::Unzipper uz("mensong.zip", "123456");
 	uz.extract("mensong\\");
