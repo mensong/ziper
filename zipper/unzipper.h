@@ -154,7 +154,7 @@ private:
 // *************************************************************************
 class ZipEntry
 {
-private:
+public:
 
     typedef struct
     {
@@ -194,7 +194,7 @@ public:
         unixdate.tm_sec = second;
     }
 
-    bool valid() { return !name.empty(); }
+    bool valid() const { return !name.empty(); }
 
     std::string name, timestamp;
     unsigned long long int compressedSize, uncompressedSize;

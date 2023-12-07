@@ -54,19 +54,63 @@ public:
 	virtual bool addFolder(const char* folderPath, const char* folderInZip = NULL,
 		IZip::zipFlags flags = IZip::zipFlags::Better) = 0;
 
+	virtual void close() = 0;
+
+	virtual bool reopen(IZip::openFlags flags) = 0;
+
 };
+
+class ZipEntryInfo
+{
+public:
+	typedef struct
+	{
+		unsigned int tm_sec;
+		unsigned int tm_min;
+		unsigned int tm_hour;
+		unsigned int tm_mday;
+		unsigned int tm_mon;
+		unsigned int tm_year;
+	} tm_s;
+
+public:
+	virtual ~ZipEntryInfo() {}
+
+	virtual bool valid() const = 0;
+
+	virtual const char* name() const = 0;
+	virtual const char* timestamp() const = 0;
+	virtual unsigned long long int compressedSize() const = 0;
+	virtual unsigned long long int uncompressedSize() const = 0;
+	virtual unsigned long dosdate() const = 0;
+	virtual tm_s unixdate() const = 0;
+};
+
 class IUnzip
 {
 public:
 	virtual ~IUnzip() {}
 
+	virtual bool extractAll(const char* targetFolder) = 0;
+
+	virtual bool extractAEntry(const char* nameInZip, const char* targetPath) = 0;
+
+	virtual unsigned char* extractToMemory(const char* nameInZip) = 0;
+
+	virtual const ZipEntryInfo* getZipEntryInfo(const char* nameInZip) = 0;
+
+	virtual int getZipEntryCount() = 0;
+	virtual const ZipEntryInfo* getZipEntryInfo(int idx) = 0;
 };
+
 
 ZIP_API IZip* CreateZip(const char* zipname, const char* password = "", 
 	IZip::openFlags flags = IZip::openFlags::Overwrite);
 ZIP_API void ReleaseZip(IZip* z);
 ZIP_API IUnzip* CreateUnzip(const char* zipname, const char* password = "");
 ZIP_API void ReleaseUnzip(IUnzip* uz);
+ZIP_API void ReleaseZBuffer(void* zbuff);
+
 
 class zip
 {
@@ -88,6 +132,7 @@ public:
 		SET_PROC(hDll, ReleaseZip);
 		SET_PROC(hDll, CreateUnzip);
 		SET_PROC(hDll, ReleaseUnzip);
+		SET_PROC(hDll, ReleaseZBuffer);
 	}
 
 
@@ -95,6 +140,7 @@ public:
 	DEF_PROC(ReleaseZip);
 	DEF_PROC(CreateUnzip);
 	DEF_PROC(ReleaseUnzip);
+	DEF_PROC(ReleaseZBuffer);
 
 
 public:
@@ -108,7 +154,8 @@ public:
 	{
 		char selfPath[MAX_PATH];
 		MEMORY_BASIC_INFORMATION mbi;
-		HMODULE hModule = ((::VirtualQuery(LoadLibraryFromCurrentDir, &mbi, sizeof(mbi)) != 0) ? (HMODULE)mbi.AllocationBase : NULL);
+		HMODULE hModule = ((::VirtualQuery(LoadLibraryFromCurrentDir, &mbi, sizeof(mbi)) != 0) ? 
+			(HMODULE)mbi.AllocationBase : NULL);
 		::GetModuleFileNameA(hModule, selfPath, MAX_PATH);
 		std::string moduleDir(selfPath);
 		size_t idx = moduleDir.find_last_of('\\');
