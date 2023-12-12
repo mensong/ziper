@@ -147,13 +147,16 @@ public:
 	{
         bool res = Unzipper::open(zipname, (password ? password : ""));
 
-		std::vector<ZipEntry> rawEntries = this->entries();
-		for (size_t i = 0; i < rawEntries.size(); ++i)
-		{
-			m_cacheZipEntryInfo.insert(std::make_pair(
-				rawEntries[i].name.c_str(), ZipEntryInfoImp(rawEntries[i])
-			));
-		}
+        if (res)
+        {
+			std::vector<ZipEntry> rawEntries = this->entries();
+			for (size_t i = 0; i < rawEntries.size(); ++i)
+			{
+				m_cacheZipEntryInfo.insert(std::make_pair(
+					rawEntries[i].name.c_str(), ZipEntryInfoImp(rawEntries[i])
+				));
+			}
+        }
 
         return res;
 	}
