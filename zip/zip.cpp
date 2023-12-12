@@ -45,7 +45,7 @@ public:
     {
 		try
 		{
-			bool res = Zipper::addFolder(folderPath, folderInZip, (Zipper::zipFlags)flags);
+			bool res = Zipper::addFolder(folderPath, (folderInZip ? folderInZip : ""), (Zipper::zipFlags)flags);
 			return res;
 		}
 		catch (std::exception& ex)

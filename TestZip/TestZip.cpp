@@ -12,7 +12,7 @@ int main()
 		zip::Ins().ReleaseZip(z);
 		return 1;
 	}
-	z->addFolder("tmp//", "tmp1\\/");
+	z->addFolder("tmp//");
 	z->add("..\\//zipper.sln", "sln1\\zipper.sln");
 	z->reopen(IZip::Append);
 	z->addFolder("tmp//", "tmp2\\/");
