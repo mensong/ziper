@@ -15,7 +15,7 @@ namespace zipper {
 
 struct Unzipper::Impl
 {
-    Unzipper& m_outer;
+    Unzipper* m_outer;
     zipFile m_zf;
     ourmemory_t m_zipmem;
     zlib_filefunc_def m_filefunc;
@@ -283,7 +283,7 @@ public:
 
     int extractToStream(std::ostream& stream, ZipEntry& info)
     {
-        int err = unzOpenCurrentFilePassword(m_zf, m_outer.m_password.c_str());
+        int err = unzOpenCurrentFilePassword(m_zf, m_outer->m_password.c_str());
         if (UNZ_OK != err)
         {
             std::stringstream str;
@@ -320,7 +320,7 @@ public:
     {
         int err = UNZ_ERRNO;
 
-        err = unzOpenCurrentFilePassword(m_zf, m_outer.m_password.c_str());
+        err = unzOpenCurrentFilePassword(m_zf, m_outer->m_password.c_str());
         if (UNZ_OK != err)
         {
             std::stringstream str;
@@ -349,7 +349,7 @@ public:
     }
 
 public:
-    Impl(Unzipper& outer)
+    Impl(Unzipper* outer)
         : m_outer(outer), m_zipmem(), m_filefunc()
     {
         m_zipmem.base = NULL;
@@ -499,54 +499,76 @@ public:
     }
 };
 
-Unzipper::Unzipper(std::istream& zippedBuffer, const std::string& password)
-    : m_ibuffer(zippedBuffer)
-    , m_vecbuffer(*(new std::vector<unsigned char>())) //not used but using local variable throws exception
-    , m_password(password)
-    , m_usingMemoryVector(false)
-    , m_usingStream(true)
-    , m_impl(new Impl(*this))
+Unzipper::Unzipper()
+    : m_ibuffer(NULL)
+    , m_vecbuffer(NULL)
+    , m_open(false)
+    , m_impl(new Impl(this))
 {
-    if (!m_impl->initWithStream(m_ibuffer))
-    {
-        release();
-        throw EXCEPTION_CLASS("Error loading zip in memory!");
-    }
-    m_open = true;
+    
 }
 
-Unzipper::Unzipper(std::vector<unsigned char>& zippedBuffer, const std::string& password)
-    : m_ibuffer(*(new std::stringstream())) //not used but using local variable throws exception
-    , m_vecbuffer(zippedBuffer)
-    , m_password(password)
-    , m_usingMemoryVector(true)
-    , m_usingStream(false)
-    , m_impl(new Impl(*this))
+bool Unzipper::open(std::istream& zippedBuffer, const std::string& password)
 {
-    if (!m_impl->initWithVector(m_vecbuffer))
-    {
-        release();
-        throw EXCEPTION_CLASS("Error loading zip in memory!");
-    }
+    if (m_open)
+        return false;
 
-    m_open = true;
+    m_ibuffer = &zippedBuffer;
+    m_password = password;
+
+    if (!m_impl->initWithStream(*m_ibuffer))
+    {
+        m_ibuffer = NULL;
+        m_password.clear();
+        m_open = false;
+    }
+    else
+    {
+        m_open = true;
+    }
+    return m_open;
 }
 
-Unzipper::Unzipper(const std::string& zipname, const std::string& password)
-    : m_ibuffer(*(new std::stringstream())) //not used but using local variable throws exception
-    , m_vecbuffer(*(new std::vector<unsigned char>())) //not used but using local variable throws exception
-    , m_zipname(zipname)
-    , m_password(password)
-    , m_usingMemoryVector(false)
-    , m_usingStream(false)
-    , m_impl(new Impl(*this))
+bool Unzipper::open(std::vector<unsigned char>& zippedBuffer, const std::string& password)
 {
+    if (m_open)
+        return false;
+
+    m_vecbuffer = &zippedBuffer;
+    m_password = password;
+
+    if (!m_impl->initWithVector(*m_vecbuffer))
+    {
+        m_vecbuffer = NULL;
+        m_password.clear();
+        m_open = false;
+    }
+    else
+    {
+        m_open = true;
+    }
+    return m_open;
+}
+
+bool Unzipper::open(const std::string& zipname, const std::string& password)
+{
+    if (m_open)
+        return false;
+
+    m_zipname = zipname;
+    m_password = password;
+
     if (!m_impl->initFile(zipname))
     {
-        release();
-        throw EXCEPTION_CLASS("Error loading zip file!");
+        m_zipname.clear();
+        m_password.clear();
+        m_open = false;
     }
-    m_open = true;
+    else
+    {
+        m_open = true;
+    }
+    return m_open;
 }
 
 Unzipper::~Unzipper()
@@ -588,15 +610,11 @@ bool Unzipper::extract(const std::string& destination)
 
 void Unzipper::release()
 {
-    if (!m_usingMemoryVector)
+    if (m_impl)
     {
-        delete &m_vecbuffer;
+        delete m_impl;
+        m_impl = NULL;
     }
-    if (!m_usingStream)
-    {
-        delete &m_ibuffer;
-    }
-    delete m_impl;
 }
 
 void Unzipper::close()

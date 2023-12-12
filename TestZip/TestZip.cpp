@@ -6,7 +6,12 @@
 
 int main()
 {
-    IZip* z = zip::Ins().CreateZip("mensong.zip", "123456", IZip::Overwrite);
+    IZip* z = zip::Ins().CreateZip();
+	if (!z->open("mensong.zip", "123456", IZip::Overwrite))
+	{
+		zip::Ins().ReleaseZip(z);
+		return 1;
+	}
 	z->addFolder("tmp//", "tmp1\\/");
 	z->add("..\\//zipper.sln", "sln1\\zipper.sln");
 	z->reopen(IZip::Append);
@@ -15,7 +20,12 @@ int main()
 	z->close();
 	zip::Ins().ReleaseZip(z);
 
-	IUnzip* uz = zip::Ins().CreateUnzip("mensong.zip", "123456");
+	IUnzip* uz = zip::Ins().CreateUnzip();
+	if (!uz->open("mensong.zip", "123456"))
+	{
+		zip::Ins().ReleaseUnzip(uz);
+		return 1;
+	}
 	uz->extractAll("mensong");
 
 	std::cout << "=========================" << std::endl;

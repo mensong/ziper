@@ -13,12 +13,12 @@ namespace zipper {
 
 struct Zipper::Impl
 {
-    Zipper& m_outer;
+    Zipper* m_outer;
     zipFile m_zf;
     ourmemory_t m_zipmem;
     zlib_filefunc_def m_filefunc;
 
-    Impl(Zipper& outer)
+    Impl(Zipper* outer)
         : m_outer(outer), m_zipmem(), m_filefunc()
     {
         m_zf = NULL;
@@ -232,14 +232,14 @@ struct Zipper::Impl
 
         if (m_zipmem.base && m_zipmem.limit > 0)
         {
-            if (m_outer.m_usingMemoryVector)
+            if (m_outer->m_vecbuffer)
             {
-                m_outer.m_vecbuffer.resize(m_zipmem.limit);
-                m_outer.m_vecbuffer.assign(m_zipmem.base, m_zipmem.base + m_zipmem.limit);
+                m_outer->m_vecbuffer->resize(m_zipmem.limit);
+                m_outer->m_vecbuffer->assign(m_zipmem.base, m_zipmem.base + m_zipmem.limit);
             }
-            else if (m_outer.m_usingStream)
+            else if (m_outer->m_obuffer)
             {
-                m_outer.m_obuffer.write(m_zipmem.base, std::streamsize(m_zipmem.limit));
+                m_outer->m_obuffer->write(m_zipmem.base, std::streamsize(m_zipmem.limit));
             }
         }
 
@@ -254,53 +254,12 @@ struct Zipper::Impl
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-Zipper::Zipper(const std::string& zipname, const std::string& password, Zipper::openFlags flags)
-    : m_obuffer(*(new std::stringstream())) //not used but using local variable throws exception
-    , m_vecbuffer(*(new std::vector<unsigned char>())) //not used but using local variable throws exception
-    , m_zipname(zipname)
-    , m_password(password)
-    , m_usingMemoryVector(false)
-    , m_usingStream(false)
-    , m_impl(new Impl(*this))
+ Zipper::Zipper()
+    : m_obuffer(NULL)
+    , m_vecbuffer(NULL)
+    , m_open(false)
+    , m_impl(new Impl(this))
 {
-    if (!m_impl->initFile(zipname, flags))
-    {
-        release();
-        throw EXCEPTION_CLASS("Error creating zip in file!");
-    }
-    m_open = true;
-}
-
-Zipper::Zipper(std::iostream& buffer, const std::string& password)
-    : m_obuffer(buffer)
-    , m_vecbuffer(*(new std::vector<unsigned char>())) //not used but using local variable throws exception
-    , m_password(password)
-    , m_usingMemoryVector(false)
-    , m_usingStream(true)
-    , m_impl(new Impl(*this))
-{
-    if (!m_impl->initWithStream(m_obuffer))
-    {
-        release();
-        throw EXCEPTION_CLASS("Error creating zip in memory!");
-    }
-    m_open = true;
-}
-
-Zipper::Zipper(std::vector<unsigned char>& buffer, const std::string& password)
-    : m_obuffer(*(new std::stringstream())) //not used but using local variable throws exception
-    , m_vecbuffer(buffer)
-    , m_password(password)
-    , m_usingMemoryVector(true)
-    , m_usingStream(false)
-    , m_impl(new Impl(*this))
-{
-    if (!m_impl->initWithVector(m_vecbuffer))
-    {
-        release();
-        throw EXCEPTION_CLASS("Error creating zip in memory!");
-    }
-    m_open = true;
 }
 
 Zipper::~Zipper()
@@ -309,17 +268,76 @@ Zipper::~Zipper()
     release();
 }
 
+bool Zipper::open(const std::string& zipname, const std::string& password, Zipper::openFlags flags)
+{
+    if (m_open)
+        return false;
+
+    m_zipname = zipname;
+    m_password = password;
+
+    if (!m_impl->initFile(zipname, flags))
+    {
+        m_zipname.clear();
+        m_password.clear();
+        m_open = false;
+    }
+    else
+    {
+        m_open = true;
+    }
+    return m_open;
+}
+
+bool Zipper::open(std::iostream& buffer, const std::string& password)
+{
+    if (m_open)
+        return false;
+
+    m_obuffer = &buffer;
+    m_password = password;
+
+    if (!m_impl->initWithStream(*m_obuffer))
+    {
+        m_obuffer = NULL;
+        m_password.clear();
+        m_open = false;
+    }
+    else
+    {
+        m_open = true;
+    }
+    return m_open;
+}
+
+bool Zipper::open(std::vector<unsigned char>& buffer, const std::string& password)
+{
+    if (m_open)
+        return false;
+
+    m_vecbuffer = &buffer;
+    m_password = password;
+
+    if (!m_impl->initWithVector(*m_vecbuffer))
+    {
+        m_vecbuffer = NULL;
+        m_password.clear();
+        m_open = false;
+    }
+    else
+    {
+        m_open = true;
+    }
+    return m_open;
+}
+
 void Zipper::release()
 {
-    if (!m_usingMemoryVector)
+    if (m_impl)
     {
-        delete &m_vecbuffer;
+        delete m_impl;
+        m_impl = NULL;
     }
-    if (!m_usingStream)
-    {
-        delete &m_obuffer;
-    }
-    delete m_impl;
 }
 
 bool Zipper::add(std::istream& source, const std::tm& timestamp, 
@@ -438,27 +456,48 @@ bool Zipper::addFolder(const std::string& folderPath,
     return true;
 }
 
-void Zipper::open(Zipper::openFlags flags)
+bool Zipper::reopen(Zipper::openFlags flags)
 {
     if (!m_open)
     {
-        if (m_usingMemoryVector)
+        if (m_vecbuffer)
         {
-            if (!m_impl->initWithVector(m_vecbuffer))
-                throw EXCEPTION_CLASS("Error opening zip memory!");
+            if (!m_impl->initWithVector(*m_vecbuffer))
+            {
+                m_vecbuffer = NULL;
+                m_open = false;
+                return false;
+            }
         }
-        else if (m_usingStream)
+        else if (m_obuffer)
         {
-            if (!m_impl->initWithStream(m_obuffer))
-                throw EXCEPTION_CLASS("Error opening zip memory!");
+            if (!m_impl->initWithStream(*m_obuffer))
+            {
+                m_obuffer = NULL;
+                m_open = false;
+                return false;
+            }
+        }
+        else if (!m_zipname.empty())
+        {
+            if (!m_impl->initFile(m_zipname, flags))
+            {
+                m_open = false;
+                return false;
+            }
         }
         else
         {
-            if (!m_impl->initFile(m_zipname, flags))
-                throw EXCEPTION_CLASS("Error opening zip file!");
+            m_open = false;
+            return false;
         }
 
         m_open = true;
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
 

@@ -47,7 +47,12 @@ public:
     };
 
     // -------------------------------------------------------------------------
-    //! \brief Regular zip compression (inside a disk zip archive file) with a
+    //! \brief Regular zip compression 
+    // -------------------------------------------------------------------------
+    Zipper();
+
+    // -------------------------------------------------------------------------
+    //! \brief Open zip compression (inside a disk zip archive file) with a
     //! password.
     //!
     //! \param[in] zipname: the path where to create your zip file.
@@ -55,20 +60,8 @@ public:
     //! \param[in] flags: Overwrite (default) or append existing zip file (zipname).
     //! \throw std::runtime_error if something odd happened.
     // -------------------------------------------------------------------------
-    Zipper(const std::string& zipname, const std::string& password,
+    bool open(const std::string& zipname, const std::string& password,
            Zipper::openFlags flags = Zipper::openFlags::Overwrite);
-
-    // -------------------------------------------------------------------------
-    //! \brief Regular zip compression (inside a disk zip archive file) without
-    //! password.
-    //!
-    //! \param[in] zipname: the path where to create your zip file.
-    //! \param[in] flags: Overwrite (default) or append existing zip file (zipname).
-    //! \throw std::runtime_error if something odd happened.
-    // -------------------------------------------------------------------------
-    Zipper(const std::string& zipname, Zipper::openFlags flags = Zipper::openFlags::Overwrite)
-        : Zipper(zipname, std::string(), flags)
-    {}
 
     // -------------------------------------------------------------------------
     //! \brief In-memory zip compression (storage inside std::iostream).
@@ -77,7 +70,7 @@ public:
     //! \param[in] password: optional password (set empty for not using password).
     //! \throw std::runtime_error if something odd happened.
     // -------------------------------------------------------------------------
-    Zipper(std::iostream& buffer, const std::string& password = std::string());
+    bool open(std::iostream& buffer, const std::string& password = std::string());
 
     // -------------------------------------------------------------------------
     //! \brief In-memory zip compression (storage inside std::vector).
@@ -86,8 +79,8 @@ public:
     //! \param[in] password: optional password (set empty for not using password).
     //! \throw std::runtime_error if something odd happened.
     // -------------------------------------------------------------------------
-    Zipper(std::vector<unsigned char>& buffer,
-           const std::string& password = std::string());
+    bool open(std::vector<unsigned char>& buffer, 
+        const std::string& password = std::string());
 
     // -------------------------------------------------------------------------
     //! \brief Call close().
@@ -151,7 +144,7 @@ public:
     //! \param[in] flags: Overwrite or append (default) existing zip file (zipname).
     //! \note this method is not called by the constructor.
     // -------------------------------------------------------------------------
-    void open(Zipper::openFlags flags = Zipper::openFlags::Append);
+    bool reopen(Zipper::openFlags flags = Zipper::openFlags::Append);
 
 private:
 
@@ -159,12 +152,10 @@ private:
 
 private:
 
-    std::iostream& m_obuffer;
-    std::vector<unsigned char>& m_vecbuffer;
+    std::iostream* m_obuffer;
+    std::vector<unsigned char>* m_vecbuffer;
     std::string m_zipname;
     std::string m_password;
-    bool m_usingMemoryVector;
-    bool m_usingStream;
     bool m_open;
 
     struct Impl;

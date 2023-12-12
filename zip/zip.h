@@ -48,6 +48,9 @@ public:
 public:
 	virtual ~IZip() {}
 
+	virtual bool open(const char* zipname, const char* password = NULL,
+		IZip::openFlags flags = IZip::openFlags::Overwrite) = 0;
+
 	virtual bool add(const char* sourceFile, const char* nameInZip,
 		IZip::zipFlags flags = IZip::zipFlags::Better, const std::tm* timestamp = NULL) = 0;
 
@@ -91,6 +94,8 @@ class IUnzip
 public:
 	virtual ~IUnzip() {}
 
+	virtual bool open(const char* zipname, const char* password = NULL) = 0;
+
 	virtual bool extractAll(const char* targetFolder) = 0;
 
 	virtual bool extractAEntry(const char* nameInZip, const char* targetPath) = 0;
@@ -101,12 +106,14 @@ public:
 
 	virtual int getZipEntryCount() = 0;
 	virtual const ZipEntryInfo* getZipEntryInfo(int idx) = 0;
+
+	virtual void close() = 0;
 };
 
 
-ZIP_API IZip* CreateZip(const char* zipname, const char* password/* = ""*/, IZip::openFlags flags/* = IZip::openFlags::Overwrite*/);
+ZIP_API IZip* CreateZip();
 ZIP_API void ReleaseZip(IZip* z);
-ZIP_API IUnzip* CreateUnzip(const char* zipname, const char* password/* = ""*/);
+ZIP_API IUnzip* CreateUnzip();
 ZIP_API void ReleaseUnzip(IUnzip* uz);
 ZIP_API void ReleaseZBuffer(void* zbuff);
 

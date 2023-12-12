@@ -11,11 +11,16 @@ class ZipImp
     , public Zipper
 {
 public:
-    ZipImp(const char* zipname, const char* password, IZip::openFlags flags)
-        : Zipper(std::string(zipname), std::string(password), (Zipper::openFlags)flags)
+    ZipImp()
+        : Zipper()
     {
 
     }
+
+	bool open(const char* zipname, const char* password = NULL, IZip::openFlags flags = IZip::openFlags::Overwrite) override
+	{
+        return Zipper::open(zipname, (password ? password : ""), (Zipper::openFlags)flags);
+	}
 
     virtual bool add(const char* sourceFile, const char* nameInZip, 
         IZip::zipFlags flags = IZip::zipFlags::Better, const std::tm* timestamp = NULL) override
@@ -59,7 +64,7 @@ public:
 		try
 		{
 			Zipper::close();
-			Zipper::open((Zipper::openFlags)flags);
+			Zipper::reopen((Zipper::openFlags)flags);
             return true;
 		}
 		catch (std::exception& ex)
@@ -132,17 +137,26 @@ class UnzipImp
     , public Unzipper
 {
 public:
-    UnzipImp(const char* zipname, const char* password)
-        : Unzipper(std::string(zipname), std::string(password))
+    UnzipImp()
+        : Unzipper()
     {
-        std::vector<ZipEntry> rawEntries = this->entries();
-		for (size_t i = 0; i < rawEntries.size(); ++i)
-        {
-            m_cacheZipEntryInfo.insert(std::make_pair(
-                rawEntries[i].name.c_str(), ZipEntryInfoImp(rawEntries[i])
-            ));
-        }
+        
     }
+
+	bool open(const char* zipname, const char* password = NULL) override
+	{
+        bool res = Unzipper::open(zipname, (password ? password : ""));
+
+		std::vector<ZipEntry> rawEntries = this->entries();
+		for (size_t i = 0; i < rawEntries.size(); ++i)
+		{
+			m_cacheZipEntryInfo.insert(std::make_pair(
+				rawEntries[i].name.c_str(), ZipEntryInfoImp(rawEntries[i])
+			));
+		}
+
+        return res;
+	}
 
     bool extractAll(const char* targetFolder) override
     {
@@ -211,14 +225,20 @@ public:
         return &it->second;
     }
 
+
+    void close() override
+    {
+        Unzipper::close();
+    }
+
 private:
     std::map<std::string, ZipEntryInfoImp> m_cacheZipEntryInfo;
 };
 
-ZIP_API IZip* CreateZip(const char* zipname, const char* password, IZip::openFlags flags)
+ZIP_API IZip* CreateZip()
 {
-	ZipImp* imp = new ZipImp(zipname, (password ? password : ""), flags);
-    return imp;
+	ZipImp* imp = new ZipImp();
+	return imp;
 }
 
 ZIP_API void ReleaseZip(IZip* z)
@@ -226,10 +246,10 @@ ZIP_API void ReleaseZip(IZip* z)
     delete z;
 }
 
-ZIP_API IUnzip* CreateUnzip(const char* zipname, const char* password)
+ZIP_API IUnzip* CreateUnzip()
 {
-	UnzipImp* imp = new UnzipImp(zipname, (password ? password : ""));
-    return imp;
+	UnzipImp* imp = new UnzipImp();
+	return imp;
 }
 
 ZIP_API void ReleaseUnzip(IUnzip* uz)

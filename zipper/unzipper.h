@@ -20,14 +20,20 @@ class Unzipper
 public:
 
     // -------------------------------------------------------------------------
-    //! \brief Regular zip decompressor (from zip archive file).
+    //! \brief Regular zip decompressor.
+    //!
+    // -------------------------------------------------------------------------
+    Unzipper();
+
+    // -------------------------------------------------------------------------
+    //! \brief Open zip decompressor (from zip archive file).
     //!
     //! \param[in] zipname: the path of the zip file.
     //! \param[in] password: the password used by the Zipper class (set empty
     //!   if no password is needed).
     //! \throw std::runtime_error if something odd happened.
     // -------------------------------------------------------------------------
-    Unzipper(const std::string& zipname,
+    bool open(const std::string& zipname,
              const std::string& password = std::string());
 
     // -------------------------------------------------------------------------
@@ -38,7 +44,7 @@ public:
     //!   if no password is needed).
     //! \throw std::runtime_error if something odd happened.
     // -------------------------------------------------------------------------
-    Unzipper(std::istream& buffer,
+    bool open(std::istream& buffer,
              const std::string& password = std::string());
 
     // -------------------------------------------------------------------------
@@ -49,7 +55,7 @@ public:
     //!   if no password is needed).
     //! \throw std::runtime_error if something odd happened.
     // -------------------------------------------------------------------------
-    Unzipper(std::vector<unsigned char>& buffer,
+    bool open(std::vector<unsigned char>& buffer,
              const std::string& password = std::string());
 
     // -------------------------------------------------------------------------
@@ -137,12 +143,10 @@ private:
 
 private:
 
-    std::istream& m_ibuffer;
-    std::vector<unsigned char>& m_vecbuffer;
+    std::istream* m_ibuffer;
+    std::vector<unsigned char>* m_vecbuffer;
     std::string m_zipname;
     std::string m_password;
-    bool m_usingMemoryVector;
-    bool m_usingStream;
     bool m_open;
 
     struct Impl;
