@@ -45,7 +45,7 @@ Timestamp::Timestamp(const std::string& filepath)
         return;
     }
 
-    if (!GetFileTime(hFile1, &filetime, NULL, NULL))
+    if (!GetFileTime(hFile1, NULL, NULL, &filetime))
     {
         CloseHandle(hFile1);
         return;
