@@ -322,7 +322,8 @@ void Zipper::release()
     delete m_impl;
 }
 
-bool Zipper::add(std::istream& source, const std::tm& timestamp, const std::string& nameInZip, zipFlags flags)
+bool Zipper::add(std::istream& source, const std::tm& timestamp, 
+    const std::string& nameInZip, zipFlags flags/* = Zipper::zipFlags::Better*/)
 {
     return m_impl->add(source, timestamp, nameInZip, m_password, flags);
 }
@@ -353,14 +354,16 @@ bool Zipper::add(std::istream& source, const std::string& nameInZip, zipFlags fl
     return m_impl->add(source, time.timestamp, nameInZip, m_password, flags);
 }
 
-bool Zipper::add(const std::string& sourceFile, const std::string& nameInZip, Zipper::zipFlags flags /*= Zipper::zipFlags::Better*/)
+bool Zipper::add(const std::string& sourceFile, const std::string& nameInZip, 
+    Zipper::zipFlags flags /*= Zipper::zipFlags::Better*/)
 {
     std::ifstream input(sourceFile.c_str(), std::ios::binary);
 
     bool addRes = false;
     try
     {
-        addRes = add(input, nameInZip, flags);
+        Timestamp time(sourceFile);
+        addRes = add(input, time.timestamp, nameInZip, flags);
         input.close();
     } 
     catch (std::exception& ex)
@@ -372,7 +375,8 @@ bool Zipper::add(const std::string& sourceFile, const std::string& nameInZip, Zi
     return addRes;
 }
 
-bool Zipper::addFolder(const std::string& folderPath, const std::string& folderInZip/* = std::string()*/, Zipper::zipFlags flags)
+bool Zipper::addFolder(const std::string& folderPath, 
+    const std::string& folderInZip/* = std::string()*/, Zipper::zipFlags flags)
 {
     if (isDirectory(folderPath))
     {
@@ -388,7 +392,8 @@ bool Zipper::addFolder(const std::string& folderPath, const std::string& folderI
             std::ifstream input(fileName.c_str(), std::ios::binary);            
             try
             {
-                add(input, fileNameInZip, flags);
+                Timestamp time(fileName);
+                add(input, time.timestamp, fileNameInZip, flags);
                 input.close();
             } 
             catch (std::exception& ex)
@@ -427,6 +432,7 @@ bool Zipper::addFolder(const std::string& folderPath, const std::string& folderI
             throw EXCEPTION_CLASS(ex);
         }
         */
+
     }
 
     return true;

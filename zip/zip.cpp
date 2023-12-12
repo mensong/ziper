@@ -217,7 +217,7 @@ private:
 
 ZIP_API IZip* CreateZip(const char* zipname, const char* password, IZip::openFlags flags)
 {
-    ZipImp* imp = new ZipImp(zipname, password, flags);
+	ZipImp* imp = new ZipImp(zipname, (password ? password : ""), flags);
     return imp;
 }
 
@@ -228,7 +228,7 @@ ZIP_API void ReleaseZip(IZip* z)
 
 ZIP_API IUnzip* CreateUnzip(const char* zipname, const char* password)
 {
-    UnzipImp* imp = new UnzipImp(zipname, password);
+	UnzipImp* imp = new UnzipImp(zipname, (password ? password : ""));
     return imp;
 }
 

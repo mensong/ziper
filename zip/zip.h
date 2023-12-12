@@ -104,10 +104,9 @@ public:
 };
 
 
-ZIP_API IZip* CreateZip(const char* zipname, const char* password = "", 
-	IZip::openFlags flags = IZip::openFlags::Overwrite);
+ZIP_API IZip* CreateZip(const char* zipname, const char* password/* = ""*/, IZip::openFlags flags/* = IZip::openFlags::Overwrite*/);
 ZIP_API void ReleaseZip(IZip* z);
-ZIP_API IUnzip* CreateUnzip(const char* zipname, const char* password = "");
+ZIP_API IUnzip* CreateUnzip(const char* zipname, const char* password/* = ""*/);
 ZIP_API void ReleaseUnzip(IUnzip* uz);
 ZIP_API void ReleaseZBuffer(void* zbuff);
 
@@ -171,7 +170,8 @@ public:
 			DWORD err = ::GetLastError();
 			char buf[10];
 			sprintf_s(buf, "%u", err);
-			::MessageBoxA(NULL, ("找不到" + modulePath + "模块:" + buf).c_str(), "找不到模块", MB_OK | MB_ICONERROR);
+			::MessageBoxA(NULL, ("找不到" + modulePath + "模块:" + buf).c_str(),
+				"找不到模块", MB_OK | MB_ICONERROR);
 		}
 		return hDll;
 	}
