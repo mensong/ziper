@@ -228,6 +228,7 @@ public:
 
     void close() override
     {
+        m_cacheZipEntryInfo.clear();
         Unzipper::close();
     }
 
