@@ -24,12 +24,6 @@
     <ClInclude Include="zip.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\zipper\unzipper.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\zipper\zipper.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

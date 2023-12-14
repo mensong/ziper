@@ -173,8 +173,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\zipper\unzipper.h" />
-    <ClInclude Include="..\zipper\zipper.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="zip.h" />
