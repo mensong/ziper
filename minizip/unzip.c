@@ -175,15 +175,7 @@ local void unz64local_DosDateToTmuDate (ZPOS64_T ulDosDate, tm_unz* ptm)
     ptm->tm_year = (uInt)(((uDate&0x0FE00)/0x0200)+1980);
     ptm->tm_hour = (uInt)((ulDosDate &0xF800)/0x800);
     ptm->tm_min  = (uInt)((ulDosDate&0x7E0)/0x20);
-    /*ptm->tm_sec = (uInt)(2*(ulDosDate&0x1f));*/
-
-     /*begin fix: odd second*/
-	/*tm_sec为单数时变为双数的问题，同时要对应的更改zip.c:zip64local_TmzDateToDosDate*/
-    uInt sec = ulDosDate&0x1f;
-    ptm->tm_sec = (uInt)(2 * sec);
-    if (sec % 2)
-        ptm->tm_sec -= 1;
-    /*end fix: odd second*/
+    ptm->tm_sec  = (uInt)(2*(ulDosDate&0x1f));
 
 #define unz64local_in_range(min, max, value) ((min) <= (value) && (value) <= (max))
     if (!unz64local_in_range(0, 11, ptm->tm_mon) ||

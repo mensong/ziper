@@ -308,21 +308,9 @@ local uLong zip64local_TmzDateToDosDate(const tm_zip* ptm)
     else /* range [00, 79] */
         year += 20;
 
-    /*
     return
 		(uLong)(((ptm->tm_mday) + (32 * (ptm->tm_mon + 1)) + (512 * year)) << 16) |
 		((ptm->tm_sec/2) + (32 * ptm->tm_min) + (2048 * (uLong)ptm->tm_hour));
-    */
-
-    /*begin fix: odd second*/
-    /*tm_sec为单数时变为双数的问题，同时要对应的更改unzip.c:unz64local_DosDateToTmuDate*/
-	uInt sec = ptm->tm_sec / 2;
-    if (ptm->tm_sec % 2)
-        sec += 1;
-	return
-		(uLong)(((ptm->tm_mday) + (32 * (ptm->tm_mon + 1)) + (512 * year)) << 16) |
-		(sec + (32 * ptm->tm_min) + (2048 * (uLong)ptm->tm_hour));
-    /*end fix: odd second*/
 }
 
 /* Inputs a long in LSB order to the given file: nbByte == 1, 2 ,4 or 8 (byte, short or long, ZPOS64_T) */
